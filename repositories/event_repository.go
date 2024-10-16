@@ -37,3 +37,10 @@ func (r *EventRepository) GetAll() ([]models.Event, error) {
 	err := config.GetDB().Find(&events).Error
 	return events, err
 }
+func (r *EventRepository) GetByID(id uint) (*models.Event, error) {
+	var event models.Event
+	if err := config.GetDB().First(&event, id).Error; err != nil {
+		return nil, err
+	}
+	return &event, nil
+}

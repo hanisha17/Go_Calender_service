@@ -3,8 +3,8 @@ package controllers
 import (
 	"calender-service/models"
 	"calender-service/services"
-	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -66,9 +66,6 @@ func (c *EventController) CreateEvent(ctx *gin.Context) {
         event.EndTime, _ = time.Parse(time.RFC3339, endParam)
     }
 
-    // Debug logs
-    fmt.Printf("Parsed Event: %+v\n", event)
-    fmt.Printf("Start Time: %v, End Time: %v\n", event.StartTime, event.EndTime)
 
     // Validate StartTime and EndTime
     if event.StartTime.IsZero() || event.EndTime.IsZero() {
@@ -96,5 +93,27 @@ func (c *EventController) GetAllEvents(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, events)
+}
+
+func (c *EventController) UpdateEvent(ctx *gin.Context) {
+	eventIDStr := ctx.Param("id")
+	eventID, err := strconv.Atoi(eventIDStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID"})
+		return
+	}
+
+	var updatedEvent models.Event
+	if err := ctx.ShouldBindJSON(&updatedEvent); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := c.services.UpdateEvent(uint(eventID), &updatedEvent); err != nil {
+		ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, updatedEvent)
 }
 

@@ -17,3 +17,7 @@ func NewRoomService(repo *repositories.RoomRepository) *RoomService {
 func (s *RoomService) CreateRoom(room *models.Room) error {
 	return s.repo.Create(room)
 }
+
+func (s *RoomService) GetAll() ([]models.Room,error){
+	return s.repo.GetAll()
+}

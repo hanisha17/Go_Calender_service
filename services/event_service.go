@@ -39,5 +39,28 @@ func (s *EventService) GetEventsByUserAndDateRange(userID uint, start, end time.
 
 // GetAllEvents retrieves all events.
 func (s *EventService) GetAllEvents() ([]models.Event, error) {
-	return s.repo.GetAll() // Assuming GetAll is defined in the repository
+	return s.repo.GetAll() 
+}
+
+//UpdateEvent checks for conflict and update the event
+func (s *EventService) UpdateEvent(eventID uint, updatedEvent *models.Event) error {
+	event, err := s.repo.GetByID(eventID)
+	if err !=nil {
+		return errors.New("event not found")
+	}
+
+	event.Name = updatedEvent.Name
+	event.StartTime = updatedEvent.StartTime
+	event.EndTime = updatedEvent.EndTime
+	event.RoomID = updatedEvent.RoomID
+
+	if s.repo.IsConflict(event.UserID, event.StartTime, event.EndTime) {
+		return errors.New("event time conflicts with another event")
+	}
+
+	// Check for room availability (if RoomID is present)
+	if event.RoomID != nil && !s.roomRepo.IsRoomAvailable(*event.RoomID, event.StartTime, event.EndTime) {
+		return errors.New("room is already booked during this time")
+	}
+	return s.repo.Update(event)
 }

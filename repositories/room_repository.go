@@ -17,3 +17,9 @@ func (r *RoomRepository) IsRoomAvailable(roomID uint,start,end time.Time) bool{
 	config.GetDB().Model(&models.Event{}).Where("room_id = ? AND ((start_time < ? AND end_time > ?) OR (start_time <? AND end_time > ?))",roomID,end,start,end,start).Count(&count)
 	return count==0
 }
+
+func (r *RoomRepository) GetAll() ([]models.Room,error){
+	var rooms []models.Room
+	err := config.GetDB().Find(&rooms).Error
+	return rooms,err
+}

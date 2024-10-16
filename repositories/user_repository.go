@@ -17,3 +17,9 @@ func (r *UserRepository) GetByID(id uint) (*models.User,error){
 	err := config.GetDB().First(&user, id).Error
 	return &user, err
 }
+
+func (r *UserRepository) GetAll() ([]models.User,error){
+	var users []models.User
+	err :=config.GetDB().Find(&users).Error
+	return users, err
+}
