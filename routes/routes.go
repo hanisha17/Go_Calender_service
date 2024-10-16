@@ -17,6 +17,7 @@ func SetupRouter(userController *controllers.UserController, eventController *co
 	router.POST("/events", eventController.CreateEvent)
 	router.GET("/events", eventController.GetAllEvents)
 	router.GET("/events/user/:user_id", eventController.GetEventsByUserAndDateRange)
+	router.PUT("/events/:id", eventController.UpdateEvent)
 
 	// Room routes
 	router.POST("/rooms", roomController.CreateRoom)
