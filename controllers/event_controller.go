@@ -3,7 +3,6 @@ package controllers
 import (
 	"calender-service/models"
 	"calender-service/services"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -66,9 +65,6 @@ func (c *EventController) CreateEvent(ctx *gin.Context) {
         event.EndTime, _ = time.Parse(time.RFC3339, endParam)
     }
 
-    // Debug logs
-    fmt.Printf("Parsed Event: %+v\n", event)
-    fmt.Printf("Start Time: %v, End Time: %v\n", event.StartTime, event.EndTime)
 
     // Validate StartTime and EndTime
     if event.StartTime.IsZero() || event.EndTime.IsZero() {

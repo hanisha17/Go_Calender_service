@@ -57,13 +57,20 @@ func (c *EventController) GetEventsByUserAndDateRange(ctx *gin.Context) {
 		return
 	}
 
-	// Retrieve events from the service
 	events, err := c.services.GetEventsByUserAndDateRange(uid, start, end)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve events"})
 		return
 	}
 
-	// Return the events as a JSON response
 	ctx.JSON(http.StatusOK, events)
+}
+
+func (c *UserController) GetAllUsers (ctx *gin.Context) {
+	users, err := c.service.GetAllUsers()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Counld not retrive users"})
+		return
+	}
+	ctx.JSON(http.StatusOK, users)
 }

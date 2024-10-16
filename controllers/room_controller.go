@@ -30,3 +30,12 @@ func (c *RoomController) CreateRoom(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, room)
 }
+
+func (c *RoomController) GetAllRooms(ctx *gin.Context){
+	rooms, err := c.service.GetAll()
+	if err !=nil {
+		ctx.JSON(http.StatusInternalServerError,gin.H{"error":"Could not retrive rooms" })
+		return
+	}
+	ctx.JSON(http.StatusOK,rooms)
+}

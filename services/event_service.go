@@ -39,5 +39,5 @@ func (s *EventService) GetEventsByUserAndDateRange(userID uint, start, end time.
 
 // GetAllEvents retrieves all events.
 func (s *EventService) GetAllEvents() ([]models.Event, error) {
-	return s.repo.GetAll() // Assuming GetAll is defined in the repository
+	return s.repo.GetAll() 
 }
