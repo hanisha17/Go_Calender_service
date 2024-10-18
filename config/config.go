@@ -24,3 +24,7 @@ func InitDB() {
 func GetDB() *gorm.DB {
 	return DB
 }
+
+func SetDB (db *gorm.DB) {
+	 DB=db
+}
