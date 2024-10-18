@@ -47,6 +47,11 @@ func (c *EventController) CreateEvent(ctx *gin.Context) {
         return
     }
 
+    if event.EndTime.Before(event.StartTime) {
+        ctx.JSON(http.StatusBadRequest, gin.H{"error": "End time cannot be before start time."})
+        return
+    }
+
     if err := c.services.CreateEvent(&event); err != nil {
         ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
         return

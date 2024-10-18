@@ -12,5 +12,5 @@ type Event struct {
 
 	// Optional room assignment
 	RoomID *uint `gorm:"null" json:"room_id"`
-	Room   *Room `gorm:"foreignKey:RoomID" json:"room"`
+	// Room   *Room `gorm:"foreignKey:RoomID" json:"room"`
 }
