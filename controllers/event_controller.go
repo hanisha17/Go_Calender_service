@@ -4,6 +4,7 @@ import (
 	"calender-service/models"
 	"calender-service/services"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -21,10 +22,12 @@ func NewEventController(service *services.EventService) *EventController {
 
 
 func (c *EventController) CreateEvent(ctx *gin.Context) {
+    log.Println("Received request to create an event")
     var event models.Event
 
     // Bind the JSON body to the event model
     if err := ctx.ShouldBindJSON(&event); err != nil {
+        log.Printf("Error in binding JSON %v",err)
         ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return
     }
@@ -44,20 +47,23 @@ func (c *EventController) CreateEvent(ctx *gin.Context) {
 
     // Validate StartTime and EndTime
     if event.StartTime.IsZero() || event.EndTime.IsZero() {
+        log.Println("Validation failed :Start and end time required")
         ctx.JSON(http.StatusBadRequest, gin.H{"error": "Start and end time are required"})
         return
     }
 
     if event.EndTime.Before(event.StartTime) {
+        log.Println("Validation failed :End time cannot be before start time")
         ctx.JSON(http.StatusBadRequest, gin.H{"error": "End time cannot be before start time."})
         return
     }
 
     if err := c.services.CreateEvent(&event); err != nil {
+        log.Printf("Error creating event %v",err)
         ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
         return
     }
-
+    log.Println("Event created successfully")
     ctx.JSON(http.StatusCreated, event)
 }
 
@@ -70,6 +76,7 @@ func (c *EventController) GetAllEvents(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve events"})
 		return
 	}
+    log.Println("Succesfully retrived all the events")
 	ctx.JSON(http.StatusOK, events)
 }
 
@@ -83,15 +90,17 @@ func (c *EventController) UpdateEvent(ctx *gin.Context) {
 
 	var updatedEvent models.Event
 	if err := ctx.ShouldBindJSON(&updatedEvent); err != nil {
+        log.Printf("Error in binding JSON %v",err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	if err := c.services.UpdateEvent(uint(eventID), &updatedEvent); err != nil {
+        log.Printf("Error while updating event %v",err)
 		ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		return
 	}
-
+    log.Println("Succesfullly updated event")
 	ctx.JSON(http.StatusOK, updatedEvent)
 }
 
@@ -105,11 +114,13 @@ func (c *EventController) GetEventsByUserAndDateRange(ctx *gin.Context) {
 	// Parse the start and end time from the query parameters
 	start, err := time.Parse(time.RFC3339, startParam)
 	if err != nil {
+        log.Println("Inavlid start time format")
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start time format"})
 		return
 	}
 	end, err := time.Parse(time.RFC3339, endParam)
 	if err != nil {
+        log.Printf("Inavlid end time format %v",err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end time format"})
 		return
 	}
@@ -117,16 +128,18 @@ func (c *EventController) GetEventsByUserAndDateRange(ctx *gin.Context) {
 	// Convert userID from string to uint
 	var uid uint
 	if _, err := fmt.Sscan(userID, &uid); err != nil {
+        log.Printf("Inavlid user Id %v",err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
 
 	events, err := c.services.GetEventsByUserAndDateRange(uid, start, end)
 	if err != nil {
+        log.Printf("Could not retrieve events %v",err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve events"})
 		return
 	}
-
+    log.Println("Retrived events succesfully")
 	ctx.JSON(http.StatusOK, events)
 }
 
