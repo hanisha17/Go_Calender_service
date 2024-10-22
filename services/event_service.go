@@ -8,11 +8,11 @@ import (
 )
 
 type EventService struct {
-	repo     *repositories.EventRepository
-	roomRepo *repositories.RoomRepository
+	repo     repositories.EventRepositoryInterface
+	roomRepo repositories.RoomRepositoryInterface
 }
 
-func NewEventService(repo *repositories.EventRepository, roomRepo *repositories.RoomRepository) *EventService {
+func NewEventService(repo repositories.EventRepositoryInterface, roomRepo repositories.RoomRepositoryInterface) *EventService {
 	return &EventService{
 		repo,
 		roomRepo}
@@ -64,3 +64,7 @@ func (s *EventService) UpdateEvent(eventID uint, updatedEvent *models.Event) err
 	}
 	return s.repo.Update(event)
 }
+
+
+
+

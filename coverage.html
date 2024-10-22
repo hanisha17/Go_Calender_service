@@ -1,0 +1,717 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>config: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">calender-service/config/config.go (0.0%)</option>
+				
+				<option value="file1">calender-service/controllers/event_controller.go (0.0%)</option>
+				
+				<option value="file2">calender-service/controllers/room_controller.go (0.0%)</option>
+				
+				<option value="file3">calender-service/controllers/user_controller.go (0.0%)</option>
+				
+				<option value="file4">calender-service/main.go (0.0%)</option>
+				
+				<option value="file5">calender-service/repositories/event_repository.go (0.0%)</option>
+				
+				<option value="file6">calender-service/repositories/room_repository.go (0.0%)</option>
+				
+				<option value="file7">calender-service/repositories/user_repository.go (0.0%)</option>
+				
+				<option value="file8">calender-service/routes/routes.go (0.0%)</option>
+				
+				<option value="file9">calender-service/services/event_service.go (0.0%)</option>
+				
+				<option value="file10">calender-service/services/room_service.go (0.0%)</option>
+				
+				<option value="file11">calender-service/services/user_service.go (0.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package config
+
+import (
+        "gorm.io/driver/mysql"
+        "gorm.io/gorm"
+        "log"
+        "fmt"
+)
+
+var DB *gorm.DB
+
+func InitDB() <span class="cov0" title="0">{
+        dsn := "root:hell0R@azors1234@tcp(127.0.0.1:3306)/calender?charset=utf8mb4&amp;parseTime=True&amp;loc=Local"
+        var err error
+        DB, err = gorm.Open(mysql.Open(dsn), &amp;gorm.Config{})
+        if err != nil </span><span class="cov0" title="0">{
+                log.Fatal("Failed to connect to the database:", err)
+        }</span>
+        
+
+        <span class="cov0" title="0">fmt.Println("Database connection established")</span>
+}
+
+func GetDB() *gorm.DB <span class="cov0" title="0">{
+        return DB
+}</span>
+
+func SetDB (db *gorm.DB) {
+         DB=db
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package controllers
+
+import (
+        "calender-service/models"
+        "calender-service/services"
+        "fmt"
+        "log"
+        "net/http"
+        "strconv"
+        "time"
+
+        "github.com/gin-gonic/gin"
+)
+
+type EventController struct {
+        services *services.EventService
+}
+
+f</span>unc NewEventController(service *services.EventService) *EventController {
+        return &amp;EventController{service}
+}
+
+
+func (c *EventController) CreateEvent(ctx *gin.Context) {
+    log.Println("Received request to create an event")
+    var event models.Event
+
+    // Bind the JSON body to the event model
+    if err := ctx.ShouldBindJSON(&amp;event); err != nil {
+        log.Printf("Error in binding JSON %v",err)
+        ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+
+    // Parse start_time and end_time from query parameters (string converted)
+    startParam := ctx.Query("start_time")
+    endParam := ctx.Query("end_time")
+
+    // Parse the start and end time from query parameters
+    if startParam != "" {
+        event.StartTime, _ = time.Parse(time.RFC3339, startParam)
+    }
+    if endParam != "" {
+        event.EndTime, _ = time.Parse(time.RFC3339, endParam)
+    }
+
+
+    // Validate StartTime and EndTime
+    if event.StartTime.IsZero() || event.EndTime.IsZero() {
+        log.Println("Validation failed :Start and end time required")
+        ctx.JSON(http.StatusBadRequest, gin.H{"error": "Start and end time are required"})
+        return
+</span>    }
+
+    i</span>f event.EndTime.Before(event.StartTime) {
+        log.Println("Validation failed :End time cannot be before start time")
+        ctx.JSON(http.StatusBadRequest, gin.H{"error": "End time cannot be before start time."})
+    <span class="cov0" title="0">    return
+    }
+
+    if err := c.services.CreateEvent(&amp;event); err != nil {
+        log.Printf("Erro</span><span class="cov0" title="0">r creating event %v",err)
+        ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+     </span>   return
+    <span class="cov0" title="0">}
+</span>    log.Println("Event created successfully")
+    c</span>tx.JSON(http.StatusCreated, event)
+}
+
+
+
+</span>// GetAllEvents handles GET requests to retrieve all events.
+func (c *EventController) GetAllEvents(ctx *gin.Context) {
+        even</span>ts, err := c.services.GetAllEvents()
+        if err != nil {
+                ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve events"})
+                re<span class="cov0" title="0">turn
+</span>        }
+    log.Println("Succesfully retrived all the events")
+        ctx.</span>JSON(http.StatusOK, events)
+}
+
+func<span class="cov0" title="0"> (c *EventController) UpdateEvent(c</span>tx *gin.Context) {
+        eventIDStr := ctx.Param("id")
+        eventID, err := strconv.Atoi(eventIDStr)
+        if err != nil {
+                ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID"})
+                return
+        }
+
+        var updatedEve</span><span class="cov0" title="0">nt models.Event
+        if err := ctx.ShouldBindJSON(&amp;updatedEvent); err != nil {
+        log.Printf("Error in binding JSON %v",err)
+                </span>ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        <span class="cov0" title="0">        return
+</span>        }
+
+        if err := c.services.UpdateEvent(uint(eventID), &amp;update<span class="cov0" title="0">dEvent); err != nil {
+        log.Printf("Error while updating event %v",err)
+                ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+                return
+</span>        }
+    log.Println("Succesfullly updated event")
+        c</span>tx.JSON(http.StatusOK, updatedEvent)
+}
+
+func (c *EventController) GetEventsByUserAndDateRange(ctx</span><span class="cov0" title="0"> *gin.Context) {
+        userID := ctx.Param("user_id")
+
+        /</span>/ Parse query parameters for start and end date
+        startParam := ctx.Query("start_time")
+        <span class="cov0" title="0">endParam := ctx.Query("end_time")
+</span>
+        // Parse the start and end time from the query parameters
+        s</span>tart, err := time.Parse(time.RFC3339, startParam)
+        if err != nil {
+ <span class="cov0" title="0">       log.Println("Inavlid start tim</span>e format")
+                ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start time format"})
+                return
+        }
+        end, err := time.Parse(time.RFC3339, endParam)
+        if err != nil {
+        log.Printf("Inavlid end time format %v",err)
+                ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end time format"})
+                return
+        }
+
+        // Convert userID from string to uint
+        var uid uint
+        if _, err := fmt.Sscan(userID, &amp;uid); err != nil {
+        log.Printf("Inavlid user Id %v",err)
+                ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+                return
+        }
+
+        events, err := c.services.GetEventsByUserAndDateRange(uid, start, end)
+        if err != nil {
+        log.Printf("Could not retrieve events %v",err)
+                ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve events"})
+                return
+        }
+    log.Println("Retrived events succesfully")
+        ctx.JSON(http.StatusOK, events)
+}
+
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package controllers
+
+import (
+        "calender-service/models"
+        "calender-service/services"
+        "log"
+        "net/http"
+
+        "github.com/gin-gonic/gin"
+)
+
+type RoomController struct {
+        service *services.RoomService
+}
+
+func NewRoomController (service *services.RoomService) *RoomController {
+        </span>return &amp;RoomController{service}
+}
+
+func (c *RoomController) CreateRoom(ctx *gin.Context) {
+        var room models.Room
+</span>        if err := ctx.ShouldBindJSON(&amp;room); err !=nil {
+                log.Printf("Could'nt bind JSON %v",err)
+                </span>ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        <span class="cov0" title="0">}
+</span>
+        if err := c.service.CreateRoom(&amp;room); err != nil {
+                </span>log.Printf("%v",err)
+                ctx.JSON(http.StatusInternalServerError, gin.H{"error":"Failed to create Room"})
+        <span class="cov0" title="0">        return
+</span>        }
+        log.Println("Created room sucessfully")
+        ctx.JSON(http.StatusCreated, room)
+}
+
+</span>func (c *RoomController) GetAllRooms(ctx *gin.Context){
+        rooms, err := c.service.GetAll()
+        i</span>f err !=nil {
+        <span class="cov0" title="0">        log.Printf("%v",err)
+</span>                ctx.JSON(http.StatusInternalServerError,gin.H{"error":"Could not retrive rooms" })
+                return
+        }
+        log.Println("Retrived all the events")
+        ctx.JSON(http.StatusOK,rooms)
+}</pre>
+		
+		<pre class="file" id="file3" style="display: none">package controllers
+
+import (
+        "calender-service/models"
+        "calender-service/services"
+        "log"
+        "net/http"
+
+        "github.com/gin-gonic/gin"
+)
+
+type UserController struct {
+        service *services.UserService
+}
+
+func NewUserController(service *services.UserService) *UserController {
+        return &amp;UserController{service}
+}
+
+</span>func (c *UserController) CreateUser(ctx *gin.Context) {
+        var user models.User
+        if err := ctx.ShouldBindJSON(&amp;user); err != nil {
+                log.Printf("%v",err)
+</span>                ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+        <span class="cov0" title="0">if err := c.service.CreateUser(&amp;user); err != nil </span><span class="cov0" title="0">{
+                log.Printf("%v",err)
+                ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+                </span>return
+        <span class="cov0" title="0">}
+</span>        log.Println("succesfully created user")
+        ctx.JSON(http.StatusCreated, user)
+}
+
+
+func (c *UserController) GetAllUsers (ctx *gin.Context) {
+        users, err := c.service.GetAllUsers()
+        if err != nil {
+                log.Printf("%v",err)
+                ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Counld not retrive users"})
+                return
+        }
+</span>        log.Println("Users created")
+        ctx.JSON(http.StatusOK, users)
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package main
+
+import (
+        "calender-service/config"
+        "calender-service/controllers"
+        "calender-service/repositories"
+        "calender-service/routes"
+        "calender-service/services"
+        "fmt"
+
+)
+
+
+func main()<span class="cov0" title="0">{
+        config.InitDB();
+        fmt.Println("hello")
+        // r := gin.Default()
+        // r.GET("/ping", func(c *gin.Context) {
+        //         c.JSON(200, gin.H{
+        //                 "message": "pong",
+        //         })
+        // })
+        // r.Run() 
+
+        userRepo := &amp;repositories.UserRepository{}
+        eventRepo := &amp;repositories.EventRepository{}
+        roomRepo := &amp;repositories.RoomRepository{}
+
+        // Initialize services
+        userService := services.NewUserService(userRepo)
+        eventService := services.NewEventService(eventRepo, roomRepo)
+        roomService := services.NewRoomService(roomRepo)
+
+        // Initialize controllers
+        userController := controllers.NewUserController(userService)
+        eventController := controllers.NewEventController(eventService)
+        roomController := controllers.NewRoomController(roomService)
+
+        // Setup routes and start the server
+        r := routes.SetupRouter(userController, eventController, roomController)
+        r.Run() // Start the server
+}</pre>
+		
+		<pre class="file" id="file5" style="display: none">package repositories
+
+import (
+        "calender-service/config"
+        "calender-service/models"
+        "time"
+)
+
+type EventRepository struct{}
+
+func (r *EventRepository) Create(event *models.Event) error <span class="cov0" title="0">{
+        return config.GetDB().Create(event).Error
+}</span>
+
+func (r *EventRepository) Update(event *models.Event) error <span class="cov0" title="0">{
+        return config.GetDB().Save(event).Error
+}</span>
+
+func (r *EventRepository) GetByUserAnddateRange(userID uint, start, end time.Time) ([]models.Event, error) <span class="cov0" title="0">{
+        var events []models.Event
+        err := config.GetDB().
+                Where("user_id = ? AND ((start_time BETWEEN ? AND ?) OR (end_time BETWEEN ? AND ?))", userID, start, end, start, end).
+                Find(&amp;events).Error
+        return events, err
+}</span>
+
+func (r *EventRepository) IsConflict(userID uint,start,end time.Time) bool <span class="cov0" title="0">{
+        var count int64
+        config.GetDB().Model(&amp;models.Event{}).Where(&amp;models.Event{}).
+        Where("user_id = ? AND ((start_time &lt; ? AND end_time &gt; ?) OR (start_time &lt; ? AND end_time &gt; ?))", userID, end, start, end, start).
+        Count(&amp;count)
+        return count &gt; 0
+}</span>
+
+func (r *EventRepository) GetAll() ([]models.Event, error) <span class="cov0" title="0">{
+        var events []models.Event
+        err := config.GetDB().Find(&amp;events).Error
+        return events, err
+}</span>
+func (r *EventRepository) GetByID(id uint) (*models.Event, error) <span class="cov0" title="0">{
+        var event models.Event
+        if err := config.GetDB().First(&amp;event, id).Error; err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov0" title="0">return &amp;event, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package repositories
+
+import (
+        "calender-service/config"
+        "calender-service/models"
+        "time"
+)
+
+type RoomRepository struct {
+        CreateFunc      func(room *models.Room) error
+        GetAllFunc      func() ([]models.Room, error)
+        IsRoomAvailable func(roomID uint, start, end time.Time) bool
+}</span>
+
+func (r *RoomRepository) Create(room *models.Room) error {
+        if r.CreateFunc != nil {
+                return r.CreateFunc(room) // If a mock function is provided, use it
+        }
+        </span>return config.GetDB().Create(room).Error // Else, use the real implementation
+}
+
+func (r *RoomRepository) GetAll() ([]models.Room, error) {
+        if r.GetAllFunc != nil {
+                return r.GetAllFunc() // If a mock function is provided, use it
+        </span>}
+        var rooms []models.Room
+        err := config.GetDB().Find(&amp;rooms).Error
+        return rooms, err // Else, use the real implementation
+}
+
+// func (r *RoomRepository) IsRoomAvailable(roomID uint, start, end time.Time) bool {
+//         if r.IsRoomAvailable != nil {
+//                 return r.IsRoomAvailable(roomID, start, end) // Mock function
+//         }
+//         var count int64
+//         config.GetDB().Model(&amp;models.Event{}).
+//                 Where("room_id = ? AND ((start_time &lt; ? AND end_time &gt; ?) OR (start_time &lt;? AND end_time &gt; ?))", roomID, end, start, end, start).
+//                 Count(&amp;count)
+//         return count == 0
+// }
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package repositories
+
+import (
+        "calender-service/config"
+        "calender-service/models"
+)
+
+
+type UserRepository struct{}
+
+func (r *UserRepository) Create(user *models.User) error<span class="cov0" title="0">{
+        return config.GetDB().Create(user).Error
+}</span>
+
+func (r *UserRepository) GetByID(id uint) (*models.User,error)<span class="cov0" title="0">{
+        var user models.User
+        err := config.GetDB().First(&amp;user, id).Error
+        return &amp;user, err
+}</span>
+
+func (r *UserRepository) GetAll() ([]models.User,error)<span class="cov0" title="0">{
+        var users []models.User
+        err :=config.GetDB().Find(&amp;users).Error
+        return users, err
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package routes
+
+import (
+        "calender-service/controllers"
+
+        "github.com/gin-gonic/gin"
+)
+
+func SetupRouter(userController *controllers.UserController, eventController *controllers.EventController, roomController *controllers.RoomController) *gin.Engine <span class="cov0" title="0">{
+        router := gin.Default()
+
+        // User routes
+        router.POST("/users", userController.CreateUser)
+        router.GET("/users",userController.GetAllUsers)
+
+        // Event routes
+        router.POST("/events", eventController.CreateEvent)
+        router.GET("/events", eventController.GetAllEvents)
+        router.GET("/events/user/:user_id", eventController.GetEventsByUserAndDateRange)
+        router.PUT("/events/:id", eventController.UpdateEvent)
+
+        // Room routes
+        router.POST("/rooms", roomController.CreateRoom)
+        router.GET("/rooms",roomController.GetAllRooms)
+
+        return router
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package services
+
+import (
+        "calender-service/models"
+        "calender-service/repositories"
+        "errors"
+        "time"
+)
+
+type EventService struct {
+        repo     *repositories.EventRepository
+        roomRepo *repositories.RoomRepository
+}
+
+func NewEventService(repo *repositories.EventRepository, roomRepo *repositories.RoomRepository) *EventService <span class="cov0" title="0">{
+        return &amp;EventService{
+                repo,
+                roomRepo}
+}</span>
+
+func (s *EventService) CreateEvent(event *models.Event) error <span class="cov0" title="0">{
+        // Check for event conflicts
+        if s.repo.IsConflict(event.UserID, event.StartTime, event.EndTime) </span><span class="cov0" title="0">{
+                return errors.New("event time conflicts with another event")
+        }</span>
+
+        // Check for room availability (optional)
+        <span class="cov0" title="0">if event.RoomID != nil &amp;&amp; !s.roomRepo.IsRoomAvailable(*event.RoomID, event.StartTime, event.EndTime) </span><span class="cov0" title="0">{
+                return errors.New("room is already booked during this time")
+        }</span>
+
+        <span class="cov0" title="0">return s.repo.Create(event)</span>
+}
+
+// GetEventsByUserAndDateRange retrieves events for a user within a specified date range.
+func (s *EventService) GetEventsByUserAndDateRange(userID uint, start, end time.Time) ([]models.Event, error) <span class="cov0" title="0">{
+        return s.repo.GetByUserAnddateRange(userID, start, end)
+}</span>
+
+// GetAllEvents retrieves all events.
+func (s *EventService) GetAllEvents() ([]models.Event, error) <span class="cov0" title="0">{
+        return s.repo.GetAll() 
+}</span>
+
+//UpdateEvent checks for conflict and update the event
+func (s *EventService) UpdateEvent(eventID uint, updatedEvent *models.Event) error <span class="cov0" title="0">{
+        event, err := s.repo.GetByID(eventID)
+        if err !=nil </span><span class="cov0" title="0">{
+                return errors.New("event not found")
+        }</span>
+
+        <span class="cov0" title="0">event.Name = updatedEvent.Name
+        event.StartTime = updatedEvent.StartTime
+        event.EndTime = updatedEvent.EndTime
+        event.RoomID = updatedEvent.RoomID
+
+        if s.repo.IsConflict(event.UserID, event.StartTime, event.EndTime) </span><span class="cov0" title="0">{
+                return errors.New("event time conflicts with another event")
+        }</span>
+
+        // Check for room availability (if RoomID is present)
+        <span class="cov0" title="0">if event.RoomID != nil &amp;&amp; !s.roomRepo.IsRoomAvailable(*event.RoomID, event.StartTime, event.EndTime) </span><span class="cov0" title="0">{
+                return errors.New("room is already booked during this time")
+        }</span>
+        <span class="cov0" title="0">return s.repo.Update(event)</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package services
+
+import (
+        "calender-service/models"
+        "calender-service/repositories"
+)
+
+
+type RoomService struct {
+        repo *repositories.RoomRepository
+}
+
+func NewRoomService(repo *repositories.RoomRepository) *RoomService <span class="cov0" title="0">{
+        return &amp;RoomService{repo}
+}</span>
+
+func (s *RoomService) CreateRoom(room *models.Room) error <span class="cov0" title="0">{
+        return s.repo.Create(room)
+}</span>
+
+func (s *RoomService) GetAll() ([]models.Room,error)<span class="cov0" title="0">{
+        return s.repo.GetAll()
+}</pre>
+		
+		<pre class="file" id="file11" style="display: none">package services
+
+import (
+        "calender-service/models"
+        "calender-service/repositories"
+        "errors"
+
+        "gorm.io/gorm"
+)
+
+
+type UserService struct {
+        repo *repositories.UserRepository
+}
+
+func NewUserService(repo *repositories.UserRepository) *UserService <span class="cov0" title="0">{
+        return &amp;UserService{repo}
+}</span>
+
+func (s *UserService) CreateUser(user *models.User) error <span class="cov0" title="0">{
+        return s.repo.Create(user)
+}</span>
+
+func (s *UserService) GetUserById(id uint) (*models.User,error)<span class="cov0" title="0">{
+        user , err :=s.repo.GetByID(id)
+        if err != nil </span><span class="cov0" title="0">{
+                if errors.Is(err, gorm.ErrRecordNotFound)</span><span class="cov0" title="0">{
+                        return nil, errors.New("user not found")
+                }</span>
+                <span class="cov0" title="0">return nil, err</span>
+        }
+        <span class="cov0" title="0">return user,nil</span>
+
+}
+func (s *UserService) GetAllUsers() ([]models.User,error)<span class="cov0" title="0">{
+        return s.repo.GetAll()
+
+}</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
