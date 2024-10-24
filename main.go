@@ -6,14 +6,12 @@ import (
 	"calender-service/repositories"
 	"calender-service/routes"
 	"calender-service/services"
-	"fmt"
 
 )
 
 
 func main(){
 	config.InitDB();
-	fmt.Println("hello")
 	// r := gin.Default()
 	// r.GET("/ping", func(c *gin.Context) {
 	// 	c.JSON(200, gin.H{
