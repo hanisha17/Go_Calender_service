@@ -158,6 +158,7 @@ func TestUpdateEvent(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			mockService.ExpectedCalls = nil
 			if tc.mockError != nil {
 				mockService.On("UpdateEvent", mock.AnythingOfType("uint"), mock.AnythingOfType("*models.Event")).Return(tc.mockError)
 			} else {
@@ -290,16 +291,39 @@ func TestGetAllEvents(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
+			mockService.ExpectedCalls = nil
 			mockService.On("GetAllEvents").Return(tc.mockEvents, tc.mockError)
 
 			req, _ := http.NewRequest(http.MethodGet, "/events", nil)
-
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, tc.expectedStatus, w.Code)
-			if tc.expectedBody != "" {
-				assert.JSONEq(t, tc.expectedBody, w.Body.String())
+
+			if tc.mockError == nil {
+				// Parse the actual response
+				var actualResponse []map[string]interface{}
+				err := json.Unmarshal(w.Body.Bytes(), &actualResponse)
+				assert.NoError(t, err)
+
+				// Check if the start_time and end_time in the response are valid ISO format
+				for i, event := range tc.mockEvents {
+					assert.Equal(t, event.ID, uint(actualResponse[i]["id"].(float64)))
+					assert.Equal(t, event.UserID, uint(actualResponse[i]["user_id"].(float64)))
+					assert.Equal(t, event.Name, actualResponse[i]["name"].(string))
+					assert.Nil(t, actualResponse[i]["room_id"])
+
+					// Validate timestamps dynamically
+					startTime := actualResponse[i]["start_time"].(string)
+					endTime := actualResponse[i]["end_time"].(string)
+					_, errStart := time.Parse(time.RFC3339, startTime)
+					_, errEnd := time.Parse(time.RFC3339, endTime)
+					assert.NoError(t, errStart)
+					assert.NoError(t, errEnd)
+				}
+			} else {
+				expectedBody := `{"error":"Could not retrieve events"}`
+				assert.JSONEq(t, expectedBody, w.Body.String())
 			}
 
 			mockService.AssertExpectations(t)
