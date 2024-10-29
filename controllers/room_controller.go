@@ -10,10 +10,11 @@ import (
 )
 
 type RoomController struct {
-	service *services.RoomService
+	service services.RoomServiceInterface  // Use an interface instead of a concrete type
 }
 
-func NewRoomController (service *services.RoomService) *RoomController {
+
+func NewRoomController (service services.RoomServiceInterface) *RoomController {
 	return &RoomController{service}
 }
 
